@@ -1,31 +1,27 @@
 from flask import Flask, render_template, request, jsonify
-import ollama
+from chatbot import get_rocky_response
 
 app = Flask(__name__)
+
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
+
 @app.route("/chat", methods=["POST"])
 def chat():
 
-    user_message = request.json["message"]
+    data = request.json
 
-    response = ollama.chat(
-        model="qwen3:8b",
-        think=False,
-        messages=[
-            {
-                "role": "user",
-                "content": user_message
-            }
-        ]
-    )
+    user_message = data["message"]
+
+    reply = get_rocky_response(user_message)
 
     return jsonify({
-        "reply": response["message"]["content"]
+        "reply": reply
     })
+
 
 if __name__ == "__main__":
     app.run(debug=True)
