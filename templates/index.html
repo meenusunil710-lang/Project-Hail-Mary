@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Hail Mary</title>
+
+    <style>
+        body{
+            margin:0;
+            background:#0b1020;
+            color:white;
+            font-family:Arial,sans-serif;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+
+        .terminal{
+            width:700px;
+            background:#18213b;
+            padding:30px;
+            border-radius:15px;
+            box-shadow:0 0 20px rgba(0,255,255,.2);
+        }
+
+        h1{
+            text-align:center;
+            color:#66fcf1;
+        }
+
+        .chat{
+            height:350px;
+            background:#101729;
+            padding:20px;
+            overflow-y:auto;
+            border-radius:10px;
+            margin-bottom:20px;
+        }
+
+        .input-area{
+            display:flex;
+            gap:10px;
+        }
+
+        input{
+            flex:1;
+            padding:12px;
+            border:none;
+            border-radius:8px;
+            font-size:16px;
+        }
+
+        button{
+            padding:12px 20px;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+            background:#66fcf1;
+            color:#000;
+            font-weight:bold;
+        }
+
+        button:hover{
+            background:#8efdf4;
+        }
+
+        p{
+            margin:8px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="terminal">
+
+    <h1>🚀 Project Hail Mary</h1>
+
+    <div class="chat" id="chat">
+        <p><b>Rocky:</b> Hello, friend.</p>
+    </div>
+
+    <div class="input-area">
+        <input
+            id="message"
+            type="text"
+            placeholder="Type a message..."
+            onkeydown="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()">Transmit</button>
+    </div>
+
+</div>
+
+<script>
+
+async function sendMessage() {
+
+    let input = document.getElementById("message");
+    let chat = document.getElementById("chat");
+
+    let message = input.value.trim();
+
+    if(message === "") return;
+
+    // Show user's message
+    chat.innerHTML += `<p><b>You:</b> ${message}</p>`;
+
+    // Clear input
+    input.value = "";
+
+    // Show loading message
+    chat.innerHTML += `<p id="loading"><b>Rocky:</b> Thinking...</p>`;
+    chat.scrollTop = chat.scrollHeight;
+
+    try {
+
+        let response = await fetch("/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: message
+            })
+        });
+
+        let data = await response.json();
+
+        // Remove loading message
+        document.getElementById("loading").remove();
+
+        // Show Rocky's reply
+        chat.innerHTML += `<p><b>Rocky:</b> ${data.reply}</p>`;
+        chat.scrollTop = chat.scrollHeight;
+
+    }
+    catch(error){
+
+        document.getElementById("loading").remove();
+
+        chat.innerHTML += `<p style="color:red;"><b>Error:</b> ${error}</p>`;
+    }
+
+}
+
+</script>
+
+</body>
+</html>
