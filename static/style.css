@@ -1,0 +1,593 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Orbitron:wght@400;500;700;900&display=swap');
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+:root{
+    --nasa-black:#0a0e17;
+    --panel-bg:#0d1321;
+    --panel-border:#1b3a5c;
+    --hud-cyan:#00e5ff;
+    --hud-cyan-dim:rgba(0,229,255,.12);
+    --hud-amber:#ffab00;
+    --hud-amber-dim:rgba(255,171,0,.10);
+    --nasa-red:#ff3d00;
+    --nasa-white:#e0e6ed;
+    --text-muted:#6b7fa3;
+    --accent-glow:0 0 12px rgba(0,229,255,.35);
+    --amber-glow:0 0 12px rgba(255,171,0,.30);
+    --scanline:repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,229,255,.03) 2px,
+        rgba(0,229,255,.03) 4px
+    );
+}
+
+body{
+    font-family:'Space Mono', monospace;
+    background:var(--nasa-black);
+    color:var(--nasa-white);
+    height:100vh;
+    overflow:hidden;
+}
+
+/* Subtle scanline overlay */
+body::after{
+    content:'';
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background:var(--scanline);
+    z-index:9999;
+    opacity:.4;
+}
+
+.app{
+    display:flex;
+    height:100vh;
+}
+
+/* ---------- Sidebar (Mission Control Panel) ---------- */
+
+.sidebar{
+    width:290px;
+    background:var(--panel-bg);
+    display:flex;
+    flex-direction:column;
+    border-right:2px solid var(--panel-border);
+    position:relative;
+}
+
+/* Corner bracket decoration */
+.sidebar::before,
+.sidebar::after{
+    content:'';
+    position:absolute;
+    width:20px;
+    height:20px;
+    border-color:var(--hud-cyan);
+    border-style:solid;
+    pointer-events:none;
+    z-index:2;
+}
+
+.sidebar::before{
+    top:8px; right:8px;
+    border-width:2px 2px 0 0;
+}
+
+.sidebar::after{
+    bottom:8px; right:8px;
+    border-width:0 2px 2px 0;
+}
+
+.sidebar-header{
+    padding:20px;
+    border-bottom:1px dashed var(--panel-border);
+    position:relative;
+}
+
+.sidebar-header h2{
+    margin-bottom:15px;
+    font-family:'Orbitron', sans-serif;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:4px;
+    text-transform:uppercase;
+    color:var(--hud-cyan);
+    text-shadow:var(--accent-glow);
+}
+
+/* Decorative label above header */
+.sidebar-header::before{
+    content:'◆ MISSION LOG';
+    display:block;
+    font-size:9px;
+    letter-spacing:3px;
+    color:var(--text-muted);
+    margin-bottom:12px;
+    font-family:'Orbitron', sans-serif;
+}
+
+.new-chat-btn{
+    width:100%;
+    padding:12px;
+    border:1px solid var(--hud-cyan);
+    border-radius:4px;
+    background:var(--hud-cyan-dim);
+    color:var(--hud-cyan);
+    cursor:pointer;
+    font-size:13px;
+    font-family:'Orbitron', sans-serif;
+    font-weight:700;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    transition:all .25s ease;
+    position:relative;
+    overflow:hidden;
+}
+
+.new-chat-btn::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(90deg, transparent, rgba(0,229,255,.08), transparent);
+    transform:translateX(-100%);
+    transition:transform .5s ease;
+}
+
+.new-chat-btn:hover{
+    background:rgba(0,229,255,.2);
+    box-shadow:var(--accent-glow), inset 0 0 20px rgba(0,229,255,.1);
+}
+
+.new-chat-btn:hover::before{
+    transform:translateX(100%);
+}
+
+.conversation-list{
+    flex:1;
+    overflow-y:auto;
+    padding:15px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+/* Custom scrollbar */
+.conversation-list::-webkit-scrollbar{
+    width:4px;
+}
+
+.conversation-list::-webkit-scrollbar-track{
+    background:var(--nasa-black);
+}
+
+.conversation-list::-webkit-scrollbar-thumb{
+    background:var(--panel-border);
+    border-radius:2px;
+}
+
+.conversation-list button{
+    width:100%;
+    text-align:left;
+    padding:10px 12px;
+    border:1px solid transparent;
+    border-left:3px solid var(--panel-border);
+    border-radius:2px;
+    background:rgba(13,19,33,.6);
+    color:var(--text-muted);
+    cursor:pointer;
+    transition:all .2s ease;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:.5px;
+}
+
+.conversation-list button:hover{
+    background:var(--hud-cyan-dim);
+    border-left-color:var(--hud-cyan);
+    color:var(--nasa-white);
+    box-shadow:inset 4px 0 8px rgba(0,229,255,.05);
+}
+
+/* ---------- Chat Area (Flight Deck) ---------- */
+
+.chat-area{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    background:var(--nasa-black);
+    position:relative;
+}
+
+/* Subtle grid background */
+.chat-area::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:
+        linear-gradient(rgba(0,229,255,.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,.02) 1px, transparent 1px);
+    background-size:40px 40px;
+    pointer-events:none;
+}
+
+.chat-header{
+    height:80px;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:20px 25px;
+    border-bottom:1px solid var(--panel-border);
+    background:linear-gradient(180deg, rgba(13,19,33,.9), var(--nasa-black));
+    position:relative;
+    z-index:1;
+}
+
+/* Status indicator bar */
+.chat-header::after{
+    content:'';
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--hud-cyan), transparent);
+    opacity:.5;
+}
+
+.rocky-avatar{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid var(--hud-cyan);
+    box-shadow:0 0 15px rgba(0,229,255,.3), 0 0 30px rgba(0,229,255,.1);
+    animation:avatar-pulse 3s ease-in-out infinite;
+}
+
+@keyframes avatar-pulse{
+    0%,100%{ box-shadow:0 0 15px rgba(0,229,255,.3), 0 0 30px rgba(0,229,255,.1); }
+    50%{ box-shadow:0 0 20px rgba(0,229,255,.5), 0 0 40px rgba(0,229,255,.2); }
+}
+
+.chat-header h1{
+    font-family:'Orbitron', sans-serif;
+    font-size:18px;
+    font-weight:700;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--nasa-white);
+}
+
+.chat-header p{
+    color:var(--text-muted);
+    font-size:11px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+}
+
+.chat{
+    flex:1;
+    overflow-y:auto;
+    padding:25px;
+    position:relative;
+    z-index:1;
+}
+
+.chat::-webkit-scrollbar{
+    width:4px;
+}
+
+.chat::-webkit-scrollbar-track{
+    background:var(--nasa-black);
+}
+
+.chat::-webkit-scrollbar-thumb{
+    background:var(--panel-border);
+    border-radius:2px;
+}
+
+.message{
+    max-width:70%;
+    padding:14px 16px;
+    border-radius:4px;
+    margin-bottom:18px;
+    line-height:1.7;
+    font-size:14px;
+    letter-spacing:.3px;
+    position:relative;
+    animation:msg-in .3s ease-out;
+}
+
+@keyframes msg-in{
+    from{ opacity:0; transform:translateY(8px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
+.message.rocky{
+    background:rgba(27,58,92,.3);
+    border:1px solid var(--panel-border);
+    border-left:3px solid var(--hud-cyan);
+}
+
+/* Timestamp-style label */
+.message.rocky::before{
+    content:'◁ INCOMING';
+    display:block;
+    font-size:9px;
+    font-family:'Orbitron', sans-serif;
+    letter-spacing:2px;
+    color:var(--hud-cyan);
+    margin-bottom:8px;
+    opacity:.7;
+}
+
+.message.user{
+    background:rgba(255,171,0,.08);
+    border:1px solid rgba(255,171,0,.25);
+    border-right:3px solid var(--hud-amber);
+    margin-left:auto;
+}
+
+.message.user::before{
+    content:'TRANSMIT ▷';
+    display:block;
+    font-size:9px;
+    font-family:'Orbitron', sans-serif;
+    letter-spacing:2px;
+    color:var(--hud-amber);
+    margin-bottom:8px;
+    opacity:.7;
+    text-align:right;
+}
+
+.input-area{
+    display:flex;
+    gap:10px;
+    padding:18px 25px;
+    border-top:1px solid var(--panel-border);
+    background:linear-gradient(0deg, rgba(13,19,33,.9), var(--nasa-black));
+    position:relative;
+    z-index:1;
+}
+
+/* Glowing top edge */
+.input-area::before{
+    content:'';
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--hud-cyan), transparent);
+    opacity:.3;
+}
+
+.input-area input{
+    flex:1;
+    padding:14px 16px;
+    border:1px solid var(--panel-border);
+    border-radius:4px;
+    background:rgba(13,19,33,.8);
+    color:var(--nasa-white);
+    font-size:14px;
+    font-family:'Space Mono', monospace;
+    letter-spacing:.5px;
+    transition:all .25s ease;
+}
+
+.input-area input::placeholder{
+    color:var(--text-muted);
+    font-size:12px;
+    letter-spacing:1px;
+}
+
+.input-area input:focus{
+    outline:none;
+    border-color:var(--hud-cyan);
+    box-shadow:0 0 10px rgba(0,229,255,.15), inset 0 0 10px rgba(0,229,255,.05);
+}
+
+.input-area button{
+    padding:14px 24px;
+    border:1px solid var(--hud-amber);
+    border-radius:4px;
+    background:var(--hud-amber-dim);
+    color:var(--hud-amber);
+    cursor:pointer;
+    font-family:'Orbitron', sans-serif;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    transition:all .25s ease;
+}
+
+.input-area button:hover{
+    background:rgba(255,171,0,.2);
+    box-shadow:var(--amber-glow), inset 0 0 15px rgba(255,171,0,.08);
+}
+
+/* ---------- Conversation Items ---------- */
+
+.conversation-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.conversation-item.active .conversation-button{
+    background:var(--hud-cyan-dim);
+    border-left-color:var(--hud-cyan);
+    color:var(--nasa-white);
+    box-shadow:inset 4px 0 8px rgba(0,229,255,.05);
+}
+
+.conversation-button{
+    flex:1;
+}
+
+.delete-button{
+    width:36px;
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:transparent;
+    color:var(--text-muted);
+    border:1px solid transparent;
+    border-radius:2px;
+    cursor:pointer;
+    transition:all .2s ease;
+    font-size:14px;
+}
+
+.delete-button:hover{
+    background:rgba(255,61,0,.1);
+    border-color:var(--nasa-red);
+    color:var(--nasa-red);
+    box-shadow:0 0 10px rgba(255,61,0,.2);
+}
+/* ── NASApunk JS Companion Styles ────────────── */
+
+.msg-meta{
+    font-family:'Orbitron', sans-serif;
+    font-size:9px;
+    letter-spacing:2px;
+    margin-bottom:8px;
+    opacity:.6;
+}
+.message.rocky .msg-meta{ color:var(--hud-cyan); }
+.message.user  .msg-meta{ color:var(--hud-amber); text-align:right; }
+.msg-body{ line-height:1.7; }
+
+/* JS now handles labels via .msg-meta, disable CSS ::before */
+.message.rocky::before,
+.message.user::before{ display:none; }
+
+.conv-callsign{
+    font-family:'Orbitron', sans-serif;
+    font-size:9px;
+    letter-spacing:2px;
+    color:var(--hud-cyan);
+    display:block;
+    margin-bottom:2px;
+}
+.conv-id{ font-size:12px; opacity:.8; }
+
+.system-status{
+    text-align:center;
+    padding:16px 20px;
+    margin:20px auto;
+    max-width:500px;
+    font-family:'Orbitron', sans-serif;
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--hud-cyan);
+    border:1px dashed var(--panel-border);
+    border-radius:2px;
+    background:var(--hud-cyan-dim);
+    animation:status-in .4s ease-out;
+}
+.system-status.warning{
+    color:var(--hud-amber);
+    border-color:rgba(255,171,0,.25);
+    background:var(--hud-amber-dim);
+}
+.status-sub{
+    font-size:9px;
+    opacity:.5;
+    letter-spacing:1.5px;
+}
+@keyframes status-in{
+    from{ opacity:0; transform:scale(.96); }
+    to{ opacity:1; transform:scale(1); }
+}
+
+.uplink-pending{ opacity:.7; }
+.uplink-anim{ animation:uplink-blink 1.2s steps(1) infinite; }
+@keyframes uplink-blink{
+    0%,100%{ opacity:1; }
+    50%{ opacity:.3; }
+}
+.uplink-dots::after{
+    content:'...';
+    animation:dots 1.5s steps(3) infinite;
+}
+@keyframes dots{
+    0%{ content:''; }
+    33%{ content:'.'; }
+    66%{ content:'..'; }
+    100%{ content:'...'; }
+}
+
+.error-msg{
+    border-left-color:var(--nasa-red) !important;
+    border-color:rgba(255,61,0,.3) !important;
+    background:rgba(255,61,0,.06) !important;
+}
+.error-msg .msg-meta{ color:var(--nasa-red) !important; }
+/* ── Sidebar Footer (Mission Clock) ──────────── */
+
+.sidebar-footer{
+    padding:14px 20px;
+    border-top:1px dashed var(--panel-border);
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    align-items:center;
+}
+
+.footer-status{
+    font-family:'Orbitron', sans-serif;
+    font-size:12px;
+    letter-spacing:3px;
+    color:var(--hud-cyan);
+    text-shadow:var(--accent-glow);
+}
+
+.footer-label{
+    font-family:'Orbitron', sans-serif;
+    font-size:8px;
+    letter-spacing:2px;
+    color:var(--text-muted);
+    opacity:.6;
+}
+
+/* ── Header Telemetry Indicator ──────────────── */
+
+.header-telemetry{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.telemetry-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--hud-cyan);
+    box-shadow:0 0 8px var(--hud-cyan);
+    animation:dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dot-pulse{
+    0%,100%{ opacity:1; box-shadow:0 0 8px var(--hud-cyan); }
+    50%{ opacity:.4; box-shadow:0 0 3px var(--hud-cyan); }
+}
+
+.telemetry-label{
+    font-family:'Orbitron', sans-serif;
+    font-size:9px;
+    letter-spacing:2px;
+    color:var(--hud-cyan);
+    opacity:.7;
+}

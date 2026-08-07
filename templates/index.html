@@ -1,148 +1,106 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Project Hail Mary</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Project Hail Mary — Mission Control Interface for Eridian Communications">
+    <title>PROJECT HAIL MARY · MISSION CONTROL</title>
 
-    <style>
-        body{
-            margin:0;
-            background:#0b1020;
-            color:white;
-            font-family:Arial,sans-serif;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            height:100vh;
-        }
-
-        .terminal{
-            width:700px;
-            background:#18213b;
-            padding:30px;
-            border-radius:15px;
-            box-shadow:0 0 20px rgba(0,255,255,.2);
-        }
-
-        h1{
-            text-align:center;
-            color:#66fcf1;
-        }
-
-        .chat{
-            height:350px;
-            background:#101729;
-            padding:20px;
-            overflow-y:auto;
-            border-radius:10px;
-            margin-bottom:20px;
-        }
-
-        .input-area{
-            display:flex;
-            gap:10px;
-        }
-
-        input{
-            flex:1;
-            padding:12px;
-            border:none;
-            border-radius:8px;
-            font-size:16px;
-        }
-
-        button{
-            padding:12px 20px;
-            border:none;
-            border-radius:8px;
-            cursor:pointer;
-            background:#66fcf1;
-            color:#000;
-            font-weight:bold;
-        }
-
-        button:hover{
-            background:#8efdf4;
-        }
-
-        p{
-            margin:8px 0;
-        }
-    </style>
+    <link rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
 
-<div class="terminal">
+<div class="app">
 
-    <h1>🚀 Project Hail Mary</h1>
+    <!-- ── Sidebar · Mission Control Panel ── -->
+    <aside class="sidebar">
 
-    <div class="chat" id="chat">
-        <p><b>Rocky:</b> Hello, friend.</p>
-    </div>
+        <div class="sidebar-header">
+            <h2>PROJECT HAIL MARY</h2>
 
-    <div class="input-area">
-        <input
-            id="message"
-            type="text"
-            placeholder="Type a message..."
-            onkeydown="if(event.key==='Enter') sendMessage()">
-        <button onclick="sendMessage()">Transmit</button>
-    </div>
+            <button class="new-chat-btn" onclick="newChat()">
+                ◆ NEW UPLINK
+            </button>
+        </div>
+
+        <div id="conversation-list" class="conversation-list">
+            <!-- Populated by JS -->
+        </div>
+
+        <div class="sidebar-footer">
+            <span class="footer-status" id="system-clock"></span>
+            <span class="footer-label">ALL SYSTEMS NOMINAL</span>
+        </div>
+
+    </aside>
+
+    <!-- ── Chat Area · Flight Deck ── -->
+    <main class="chat-area">
+
+        <header class="chat-header">
+
+           
+            <div>
+                <h1>ROCKY</h1>
+                <p>ERIDIAN ENGINEER · UPLINK ACTIVE</p>
+            </div>
+
+            <div class="header-telemetry">
+                <span class="telemetry-dot"></span>
+                <span class="telemetry-label">CONNECTED</span>
+            </div>
+
+        </header>
+
+        <div class="chat" id="chat">
+
+            <div class="system-status">
+                ◆ SECURE CHANNEL ESTABLISHED
+                <br>
+                <span class="status-sub">ERIDIAN-HUMAN TRANSLATION LAYER ONLINE</span>
+            </div>
+
+            <div class="message rocky">
+                <div class="msg-meta">◁ ROCKY · FIRST CONTACT</div>
+                <div class="msg-body">Hello, friend.</div>
+            </div>
+
+        </div>
+
+        <div class="input-area">
+
+            <input
+                id="message"
+                type="text"
+                placeholder="ENTER TRANSMISSION..."
+                autocomplete="off"
+                spellcheck="false">
+
+            <button onclick="sendMessage()">
+                TRANSMIT
+            </button>
+
+        </div>
+
+    </main>
 
 </div>
 
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
+
 <script>
-
-async function sendMessage() {
-
-    let input = document.getElementById("message");
-    let chat = document.getElementById("chat");
-
-    let message = input.value.trim();
-
-    if(message === "") return;
-
-    // Show user's message
-    chat.innerHTML += `<p><b>You:</b> ${message}</p>`;
-
-    // Clear input
-    input.value = "";
-
-    // Show loading message
-    chat.innerHTML += `<p id="loading"><b>Rocky:</b> Thinking...</p>`;
-    chat.scrollTop = chat.scrollHeight;
-
-    try {
-
-        let response = await fetch("/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                message: message
-            })
-        });
-
-        let data = await response.json();
-
-        // Remove loading message
-        document.getElementById("loading").remove();
-
-        // Show Rocky's reply
-        chat.innerHTML += `<p><b>Rocky:</b> ${data.reply}</p>`;
-        chat.scrollTop = chat.scrollHeight;
-
+    // ── Live Mission Clock ──
+    function updateClock() {
+        const el = document.getElementById("system-clock");
+        if (!el) return;
+        const now = new Date();
+        const doy = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+        el.textContent = `MET ${String(doy).padStart(3,'0')}:${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
     }
-    catch(error){
-
-        document.getElementById("loading").remove();
-
-        chat.innerHTML += `<p style="color:red;"><b>Error:</b> ${error}</p>`;
-    }
-
-}
-
+    updateClock();
+    setInterval(updateClock, 1000);
 </script>
 
 </body>
