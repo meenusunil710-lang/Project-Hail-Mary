@@ -1,0 +1,54 @@
+services:
+
+  # ── Ollama LLM server ────────────────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rocky_ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama        # Persist downloaded models
+    ports:
+      - "11434:11434"                    # Expose for optional direct access
+    # Start serving, then pull the model in the background
+    entrypoint: >
+      sh -c "ollama serve &
+             sleep 5 &&
+             ollama pull gemma3:4b &&
+             wait"
+    # Health check uses ollama CLI (no curl needed in this image)
+    # Passes only once gemma3:4b is fully downloaded and listed
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list | grep gemma3"]
+      interval: 15s
+      timeout: 10s
+      retries: 40
+      start_period: 30s
+    networks:
+      - rocky_net
+
+  # ── Rocky Flask app ──────────────────────────────────────────────────────────
+  rocky:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rocky_app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"                      # App available at http://localhost:5000
+    environment:
+      - OLLAMA_HOST=http://ollama:11434  # Talk to Ollama over Docker network
+    volumes:
+      - conversations_data:/app/conversations   # Persist chat history
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - rocky_net
+
+networks:
+  rocky_net:
+    driver: bridge
+
+volumes:
+  ollama_data:          # Stores Ollama models (gemma3:4b ~2.5 GB)
+  conversations_data:   # Stores conversation JSON files

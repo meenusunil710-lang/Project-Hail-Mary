@@ -18,9 +18,18 @@ def chat():
     user_message = data["message"]
     conversation_id = data["conversation_id"]
 
-    reply = get_rocky_response(
-        user_message,
-        conversation_id)
+    try:
+        reply = get_rocky_response(
+            user_message,
+            conversation_id)
+    except ConnectionError:
+        return jsonify({
+            "error": "Ollama is not running. Start it with: ollama serve"
+        }), 503
+    except Exception as e:
+        return jsonify({
+            "error": f"Something went wrong: {str(e)}"
+        }), 500
 
     return jsonify({
         "reply": reply

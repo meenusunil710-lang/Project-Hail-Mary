@@ -199,6 +199,23 @@ async function sendMessage() {
 
         let data = await response.json();
 
+        if (!response.ok) {
+            document.getElementById("loading").remove();
+
+            const errorMsg = data.error || "Unknown uplink failure";
+            chat.innerHTML += `
+                <div class="message rocky error-msg">
+                    <div class="msg-meta">◁ GROUND CONTROL</div>
+                    <div class="msg-body">
+                        ⚠ UPLINK ERROR — ${sanitize(errorMsg)}
+                        <br><span class="status-sub">ENSURE OLLAMA IS RUNNING: ollama serve</span>
+                    </div>
+                </div>
+            `;
+            chat.scrollTop = chat.scrollHeight;
+            return;
+        }
+
         document.getElementById("loading").remove();
 
         const replyTimestamp = getMissionTimestamp();
